@@ -2,6 +2,8 @@
 
 The Linux Boot/Shutdown Quick-Analyzer is a Python script that analyzes Linux boot and shutdown logs.
 
+![Preview](assets/screenshot.png)
+
 ## Description
 
 This script parses system logs to find boot and shutdown events. It works with both gzip-compressed and uncompressed logs.
