@@ -1,6 +1,6 @@
 """
 Script name: Linux Boot/Shutdown Quick-Analyzer
-Version: 1.0
+Version: 1.2
 Git repo: https://github.com/samatild/linuxrebootcheck
 """
 import os
@@ -32,7 +32,7 @@ parser.add_argument(
 parser.add_argument(
     "--version",
     action='version',
-    version='Linux Boot/Shutdown Quick-Analyzer 1.0'
+    version='Linux Boot/Shutdown Quick-Analyzer 1.2'
 )
 
 args = parser.parse_args()
