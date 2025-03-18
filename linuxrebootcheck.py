@@ -1,6 +1,6 @@
 """
 Script name: Linux Boot/Shutdown Quick-Analyzer
-Version: 1.0
+Version: 1.2
 Git repo: https://github.com/samatild/linuxrebootcheck
 """
 import os
@@ -32,7 +32,7 @@ parser.add_argument(
 parser.add_argument(
     "--version",
     action='version',
-    version='Linux Boot/Shutdown Quick-Analyzer 1.0'
+    version='Linux Boot/Shutdown Quick-Analyzer 1.2'
 )
 
 args = parser.parse_args()
@@ -53,15 +53,17 @@ def get_boot_info(filename=None):
     boot_count = 0
     boot_timestamps = []
     boot_locations = []
-    filenames = [filename] if filename else os.listdir('.')
+    log_directory = '/var/log/'
+    filenames = [filename] if filename else os.listdir(log_directory)
 
     for filename in filenames:
+        filepath = os.path.join(log_directory, filename)
         if filename.startswith('dmesg') or filename == args.serial_console_log:
             try:
                 if filename.endswith('.gz'):
-                    file = gzip.open(filename, 'rb')
+                    file = gzip.open(filepath, 'rb')
                 else:
-                    file = open(filename, 'rb')
+                    file = open(filepath, 'rb')
 
                 with file:
                     for line_number, line in enumerate(file, start=1):
@@ -76,7 +78,7 @@ def get_boot_info(filename=None):
                             if timestamp:
                                 boot_timestamps.append(timestamp.group())
             except Exception as e:
-                print(f"Error reading file {filename}: {e}")
+                print(f"Error reading file {filepath}: {e}")
 
     return boot_count, boot_timestamps, boot_locations
 
@@ -108,16 +110,19 @@ def get_shutdown_info(filename=None):
         "Power down",
         "Powering off",
     ]
-    filenames = [filename] if filename else os.listdir('.')
+    log_directory = '/var/log/'
+    filenames = [filename] if filename else os.listdir(log_directory)
+
     for filename in filenames:
+        filepath = os.path.join(log_directory, filename)
         if ('syslog' in filename or
                 'messages' in filename or
                 filename == args.serial_console_log):
             try:
                 if filename.endswith('.gz'):
-                    file = gzip.open(filename, 'rt')
+                    file = gzip.open(filepath, 'rt')
                 else:
-                    file = open(filename, 'r')
+                    file = open(filepath, 'r')
 
                 with file:
                     for line_number, line in enumerate(file, start=1):
@@ -138,7 +143,7 @@ def get_shutdown_info(filename=None):
                                     )
                                 break
             except Exception as e:
-                print(f"Error reading file {filename}: {e}")
+                print(f"Error reading file {filepath}: {e}")
 
     return (shutdown_count,
             shutdown_timestamps,
@@ -280,8 +285,11 @@ boot_count, boot_timestamps, boot_locations = get_boot_info(filename)
 shutdown_count, shutdown_timestamps, shutdown_messages_matched, \
     match_locations = get_shutdown_info(filename)
 
+# Check if local logs provided sufficient information
+local_logs_provided_info = boot_count > 0 and shutdown_count > 0
+
 # If we found limited info and journalctl is available, try that too
-if (boot_count == 0 or shutdown_count == 0) and is_journalctl_available():
+if not local_logs_provided_info and is_journalctl_available():
     print(Color.WARNING +
           "Limited information found in log files. Trying journalctl..." +
           Color.ENDC)
